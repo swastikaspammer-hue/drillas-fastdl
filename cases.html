@@ -553,10 +553,11 @@
             <div class="victory-item-name" id="victoryName">★ Woody Player Skin</div>
             <div class="victory-item-rarity" id="victoryRarity">★ GOLD (EXTREMELY RARE)</div>
             <div class="victory-status">✓ PERMANENTLY ADDED TO STORE INVENTORY</div>
-            <div style="display: flex; gap: 12px; width: 100%;">
+            <div style="display: flex; gap: 12px; width: 100%; margin-bottom: 10px;">
                 <button class="btn btn-primary" style="flex: 1;" onclick="closeVictory()">UNBOX AGAIN</button>
                 <button class="btn btn-secondary" style="flex: 1;" onclick="backToGridFromVictory()">ALL CASES</button>
             </div>
+            <button class="btn btn-secondary" style="width: 100%; font-size: 15px; padding: 10px;" onclick="closeInGame()">❌ CLOSE & RETURN TO GAME</button>
         </div>
     </div>
 
@@ -788,6 +789,9 @@
             requestAnimationFrame(checkTick);
         }
 
+        let autoCloseTimer = null;
+        let countdownSec = 4;
+
         function finishSpin(winningItem) {
             isSpinning = false;
             document.getElementById('btnSpin').disabled = false;
@@ -800,9 +804,35 @@
             document.getElementById('victoryName').innerText = winningItem.name;
             document.getElementById('victoryRarity').innerText = `${winningItem.rarity.toUpperCase()} TIER`;
             document.getElementById('victoryModal').classList.add('active');
+
+            // Auto-close countdown if launched from in-game or requested
+            if (urlParams.get('autoclose') === '1' || urlParams.get('autospin') === '1') {
+                countdownSec = 4;
+                const statusEl = document.querySelector('.victory-status');
+                statusEl.innerHTML = `✓ ADDED TO INVENTORY &bull; Auto-closing in <b id="timerCount">${countdownSec}</b>s`;
+                
+                if (autoCloseTimer) clearInterval(autoCloseTimer);
+                autoCloseTimer = setInterval(() => {
+                    countdownSec--;
+                    const countEl = document.getElementById('timerCount');
+                    if (countEl) countEl.innerText = countdownSec;
+                    if (countdownSec <= 0) {
+                        clearInterval(autoCloseTimer);
+                        closeInGame();
+                    }
+                }, 1000);
+            }
+        }
+
+        function closeInGame() {
+            if (autoCloseTimer) clearInterval(autoCloseTimer);
+            try { window.close(); } catch(e){}
+            try { window.top.close(); } catch(e){}
+            location.href = 'about:blank';
         }
 
         function closeVictory() {
+            if (autoCloseTimer) clearInterval(autoCloseTimer);
             document.getElementById('victoryModal').classList.remove('active');
             buildRouletteCards();
         }
