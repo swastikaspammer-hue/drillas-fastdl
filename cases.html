@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drillas 16k - Case Opening</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0b0d14;
+            --bg-card: #131722;
+            --bg-card-hover: #1c2233;
+            --accent-purple: #9333ea;
+            --accent-purple-glow: rgba(147, 51, 234, 0.45);
+            --rarity-grey: #b0c3d9;
+            --rarity-blue: #4b69ff;
+            --rarity-purple: #8847ff;
+            --rarity-pink: #d32ce6;
+            --rarity-red: #eb4b4b;
+            --rarity-gold: #ffd700;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Rajdhani', 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #151928 0%, #080a10 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navbar */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 36px;
+            background: rgba(11, 13, 20, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(147, 51, 234, 0.25);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-logo {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #ffffff 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--accent-purple-glow);
+        }
+
+        .badge-live {
+            background: rgba(147, 51, 234, 0.2);
+            color: #c084fc;
+            border: 1px solid #a855f7;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .user-stats {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .credits-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.25), rgba(76, 29, 149, 0.4));
+            border: 1px solid #9333ea;
+            padding: 8px 18px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #f3e8ff;
+            box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+        }
+
+        /* Main Container */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+        }
+
+        /* Roulette Container */
+        .roulette-container {
+            width: 100%;
+            max-width: 1050px;
+            background: rgba(19, 23, 34, 0.9);
+            border: 2px solid rgba(147, 51, 234, 0.4);
+            border-radius: 16px;
+            padding: 30px 20px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 30px var(--accent-purple-glow);
+            position: relative;
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .roulette-container.active {
+            display: flex;
+        }
+
+        .roulette-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .case-title {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #f1f5f9;
+        }
+
+        .roulette-viewport {
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+            position: relative;
+            background: #090c14;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
+        }
+
+        /* Center Needle */
+        .needle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, #ffd700 0%, #ff8800 100%);
+            z-index: 10;
+            box-shadow: 0 0 16px #ffd700, 0 0 30px #ff8800;
+        }
+
+        .needle::before, .needle::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+        }
+
+        .needle::before {
+            top: 0;
+            border-top: 14px solid #ffd700;
+        }
+
+        .needle::after {
+            bottom: 0;
+            border-bottom: 14px solid #ffd700;
+        }
+
+        /* Sliding Track */
+        .roulette-track {
+            display: flex;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            will-change: transform;
+        }
+
+        /* Item Cards */
+        .roulette-card {
+            width: 170px;
+            height: 100%;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.6) 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            padding: 12px;
+            transition: background 0.2s;
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 38px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 12px rgba(255,255,255,0.2));
+        }
+
+        .card-name {
+            font-size: 15px;
+            font-weight: 700;
+            text-align: center;
+            color: #f8fafc;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .card-rarity {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+        }
+
+        /* Rarity Theme Styles */
+        .rarity-grey .card-bottom-bar { background: var(--rarity-grey); }
+        .rarity-grey .card-rarity { color: var(--rarity-grey); }
+        
+        .rarity-blue .card-bottom-bar { background: var(--rarity-blue); }
+        .rarity-blue .card-rarity { color: var(--rarity-blue); }
+
+        .rarity-purple .card-bottom-bar { background: var(--rarity-purple); }
+        .rarity-purple .card-rarity { color: var(--rarity-purple); }
+
+        .rarity-pink .card-bottom-bar { background: var(--rarity-pink); }
+        .rarity-pink .card-rarity { color: var(--rarity-pink); }
+
+        .rarity-red .card-bottom-bar { background: var(--rarity-red); }
+        .rarity-red .card-rarity { color: var(--rarity-red); }
+
+        .rarity-gold .card-bottom-bar { background: var(--rarity-gold); box-shadow: 0 0 10px var(--rarity-gold); }
+        .rarity-gold .card-rarity { color: var(--rarity-gold); }
+        .rarity-gold { background: radial-gradient(circle at center, rgba(255, 215, 0, 0.15) 0%, rgba(0,0,0,0.7) 100%); }
+
+        /* Actions Bar */
+        .roulette-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 14px 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s ease;
+            outline: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #9333ea 0%, #6b21a8 100%);
+            color: #ffffff;
+            box-shadow: 0 0 25px rgba(147, 51, 234, 0.5);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 35px rgba(147, 51, 234, 0.8);
+            background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+        }
+
+        /* Case Grid Selection View */
+        .cases-grid-view {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 28px;
+            padding: 20px 0;
+        }
+
+        .case-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .case-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-6px);
+            border-color: #a855f7;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 25px var(--accent-purple-glow);
+        }
+
+        .case-card-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(147, 51, 234, 0.25);
+            color: #d8b4fe;
+            border: 1px solid #a855f7;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .case-card-img {
+            font-size: 72px;
+            margin: 20px 0;
+            filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.5));
+            transition: transform 0.3s;
+        }
+
+        .case-card:hover .case-card-img {
+            transform: scale(1.1) rotate(-3deg);
+        }
+
+        .case-card-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #f8fafc;
+        }
+
+        .case-card-desc {
+            font-size: 14px;
+            color: #94a3b8;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .case-card-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #c084fc;
+            background: rgba(147, 51, 234, 0.15);
+            padding: 8px 24px;
+            border-radius: 10px;
+            border: 1px solid rgba(147, 51, 234, 0.4);
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Victory Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .victory-card {
+            background: linear-gradient(180deg, #181d2f 0%, #0d101a 100%);
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5), 0 0 100px rgba(147, 51, 234, 0.4);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 480px;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .victory-banner {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+
+        .victory-icon {
+            font-size: 80px;
+            margin: 20px 0;
+            filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.7));
+            animation: pulseGlow 2s infinite alternate;
+        }
+
+        .victory-item-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .victory-item-rarity {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+
+        .victory-status {
+            font-size: 14px;
+            color: #4ade80;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid #22c55e;
+            padding: 6px 16px;
+            border-radius: 8px;
+            margin-bottom: 28px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes pulseGlow {
+            from { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6)); }
+            to { filter: drop-shadow(0 0 35px rgba(255, 215, 0, 1)); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <div class="brand-logo">Drillas 16k</div>
+            <div class="badge-live">CASE OPENING</div>
+        </div>
+        <div class="user-stats">
+            <div class="user-name" id="userName">LC Inventor</div>
+            <div class="credits-box">
+                <span>💎</span>
+                <span id="userCredits">10,000</span>
+                <span style="font-size: 14px; font-weight: 500; color: #d8b4fe;">CREDITS</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Cases Selection Grid -->
+        <div class="cases-grid-view" id="casesGrid">
+            <!-- Rendered by JS -->
+        </div>
+
+        <!-- Roulette Screen -->
+        <div class="roulette-container" id="rouletteContainer">
+            <div class="roulette-header">
+                <button class="btn btn-secondary" onclick="backToGrid()">◀ Back To Cases</button>
+                <div class="case-title" id="activeCaseTitle">Drillas Starter Case</div>
+                <div style="width: 140px;"></div>
+            </div>
+
+            <div class="roulette-viewport">
+                <div class="needle"></div>
+                <div class="roulette-track" id="rouletteTrack">
+                    <!-- 45+ Item Cards -->
+                </div>
+            </div>
+
+            <div class="roulette-actions">
+                <button class="btn btn-primary" id="btnSpin" onclick="spinCase()">
+                    UNBOX THIS CASE (<span id="spinCost">1,000</span> CREDITS)
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Victory Modal -->
+    <div class="modal-overlay" id="victoryModal">
+        <div class="victory-card">
+            <div class="victory-banner">★ CONGRATULATIONS ★</div>
+            <div class="victory-icon" id="victoryIcon">🎁</div>
+            <div class="victory-item-name" id="victoryName">★ Woody Player Skin</div>
+            <div class="victory-item-rarity" id="victoryRarity">★ GOLD (EXTREMELY RARE)</div>
+            <div class="victory-status">✓ PERMANENTLY ADDED TO STORE INVENTORY</div>
+            <div style="display: flex; gap: 12px; width: 100%;">
+                <button class="btn btn-primary" style="flex: 1;" onclick="closeVictory()">UNBOX AGAIN</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="backToGridFromVictory()">ALL CASES</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio Synthesizer for Authentic Sound Effects
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTickSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.04);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.04);
+        }
+
+        function playWinFanfare(isGold) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const chords = isGold ? [523.25, 659.25, 783.99, 1046.50] : [440, 554.37, 659.25, 880];
+            chords.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = isGold ? 'sawtooth' : 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.08);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime + idx * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.6);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + idx * 0.08);
+                osc.stop(audioCtx.currentTime + 1.6);
+            });
+        }
+
+        // Case Definitions
+        const CASES = {
+            starter: {
+                id: 'starter',
+                name: 'Drillas Starter Case',
+                cost: 1000,
+                icon: '📦',
+                desc: 'Includes Blue/Green/Cyan Tracers, Paintballs, Cheers, and Tofu Skin!',
+                items: [
+                    { name: 'Blue Bullet Tracer', rarity: 'grey', icon: '🔵', weight: 25 },
+                    { name: 'Green Bullet Tracer', rarity: 'grey', icon: '🟢', weight: 25 },
+                    { name: 'Cyan Bullet Tracer', rarity: 'grey', icon: '💎', weight: 20 },
+                    { name: 'Pink Paintballs', rarity: 'blue', icon: '🎨', weight: 15 },
+                    { name: 'Cheer #1 Sound', rarity: 'blue', icon: '🔊', weight: 15 },
+                    { name: 'Lightning Aura', rarity: 'purple', icon: '⚡', weight: 10 },
+                    { name: 'Fire Kill Vortex', rarity: 'red', icon: '🔥', weight: 4 },
+                    { name: '★ Tofu Player Skin', rarity: 'gold', icon: '👑', weight: 1 }
+                ]
+            },
+            elite: {
+                id: 'elite',
+                name: 'Drillas Elite Case',
+                cost: 3500,
+                icon: '💼',
+                desc: 'Includes Violet Tracers, Hell Particle Aura, Ice Kill Vortex, and Woody Skin!',
+                items: [
+                    { name: 'Violet Bullet Tracer', rarity: 'grey', icon: '🟣', weight: 25 },
+                    { name: 'Fire Brick Tracer', rarity: 'grey', icon: '🧱', weight: 25 },
+                    { name: 'Yellow Paintballs', rarity: 'blue', icon: '🎨', weight: 20 },
+                    { name: 'Cheer #3 Sound', rarity: 'blue', icon: '🔊', weight: 15 },
+                    { name: 'Hell Particle Aura', rarity: 'purple', icon: '😈', weight: 15 },
+                    { name: 'Ice Kill Vortex', rarity: 'red', icon: '❄️', weight: 8 },
+                    { name: '★ Woody Player Skin', rarity: 'gold', icon: '🤠', weight: 3 }
+                ]
+            },
+            highroller: {
+                id: 'highroller',
+                name: 'Drillas High-Roller Case',
+                cost: 10000,
+                icon: '💎',
+                desc: 'High tier particle auras, kill vortexes, and highest chance for Gold skins!',
+                items: [
+                    { name: 'Splash Particle Aura', rarity: 'purple', icon: '🌊', weight: 35 },
+                    { name: 'Hell Particle Aura', rarity: 'purple', icon: '😈', weight: 30 },
+                    { name: 'Fire Kill Vortex', rarity: 'red', icon: '🔥', weight: 20 },
+                    { name: 'Ice Kill Vortex', rarity: 'red', icon: '❄️', weight: 15 },
+                    { name: '★ Woody Player Skin', rarity: 'gold', icon: '🤠', weight: 5 },
+                    { name: '★ Tofu Player Skin', rarity: 'gold', icon: '👑', weight: 5 }
+                ]
+            }
+        };
+
+        // State
+        let currentCase = CASES.starter;
+        let isSpinning = false;
+        let userCredits = 10000;
+        const CARD_WIDTH = 170; // 170px per card
+        const WIN_INDEX = 38;   // 38th card is the winning index
+
+        // Read URL query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('user')) document.getElementById('userName').innerText = urlParams.get('user');
+        if (urlParams.get('credits')) {
+            userCredits = parseInt(urlParams.get('credits')) || 10000;
+            document.getElementById('userCredits').innerText = userCredits.toLocaleString();
+        }
+
+        // Render Case Grid
+        function renderCaseGrid() {
+            const grid = document.getElementById('casesGrid');
+            grid.innerHTML = '';
+
+            Object.values(CASES).forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'case-card';
+                card.onclick = () => selectCase(c.id);
+                card.innerHTML = `
+                    <div class="case-card-badge">${c.items.length} ITEMS</div>
+                    <div class="case-card-img">${c.icon}</div>
+                    <div class="case-card-title">${c.name}</div>
+                    <div class="case-card-desc">${c.desc}</div>
+                    <div class="case-card-price">💎 ${c.cost.toLocaleString()} CREDITS</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function selectCase(caseId) {
+            currentCase = CASES[caseId] || CASES.starter;
+            document.getElementById('casesGrid').style.display = 'none';
+            document.getElementById('rouletteContainer').classList.add('active');
+            document.getElementById('activeCaseTitle').innerText = currentCase.name;
+            document.getElementById('spinCost').innerText = currentCase.cost.toLocaleString();
+            buildRouletteCards();
+        }
+
+        function backToGrid() {
+            if (isSpinning) return;
+            document.getElementById('rouletteContainer').classList.remove('active');
+            document.getElementById('casesGrid').style.display = 'grid';
+        }
+
+        function buildRouletteCards(predeterminedWinItem = null) {
+            const track = document.getElementById('rouletteTrack');
+            track.innerHTML = '';
+            track.style.transition = 'none';
+            track.style.transform = 'translateX(0px)';
+
+            const totalCards = 50;
+            for (let i = 0; i < totalCards; i++) {
+                let item;
+                if (i === WIN_INDEX && predeterminedWinItem) {
+                    item = predeterminedWinItem;
+                } else {
+                    item = getRandomItem(currentCase.items);
+                }
+
+                const card = document.createElement('div');
+                card.className = `roulette-card rarity-${item.rarity}`;
+                card.innerHTML = `
+                    <div class="card-icon">${item.icon}</div>
+                    <div class="card-name">${item.name}</div>
+                    <div class="card-rarity">${item.rarity.toUpperCase()}</div>
+                    <div class="card-bottom-bar"></div>
+                `;
+                track.appendChild(card);
+            }
+        }
+
+        function getRandomItem(items) {
+            const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+            let roll = Math.random() * totalWeight;
+            for (let itm of items) {
+                if (roll <= itm.weight) return itm;
+                roll -= itm.weight;
+            }
+            return items[0];
+        }
+
+        function spinCase() {
+            if (isSpinning) return;
+
+            if (userCredits < currentCase.cost) {
+                alert("You don't have enough credits to open this case!");
+                return;
+            }
+
+            userCredits -= currentCase.cost;
+            document.getElementById('userCredits').innerText = userCredits.toLocaleString();
+
+            isSpinning = true;
+            document.getElementById('btnSpin').disabled = true;
+
+            const winningItem = getRandomItem(currentCase.items);
+            buildRouletteCards(winningItem);
+
+            // Compute exact pixel landing:
+            // Center of viewport (1050 / 2 = 525)
+            // Landing on WIN_INDEX card (38 * 170 + random jitter inside card between 25 and 145px)
+            const viewportCenter = document.querySelector('.roulette-viewport').offsetWidth / 2;
+            const randomJitter = Math.floor(Math.random() * (140 - 30 + 1)) + 30;
+            const targetDistance = (WIN_INDEX * CARD_WIDTH) + randomJitter - viewportCenter;
+
+            const track = document.getElementById('rouletteTrack');
+            
+            // Audio Ticker during animation
+            let lastCardIndex = 0;
+            const startTime = performance.now();
+            const duration = 5400; // 5.4 seconds
+
+            track.style.transition = `transform ${duration}ms cubic-bezier(0.12, 0.8, 0.2, 1.0)`;
+            track.style.transform = `translateX(-${targetDistance}px)`;
+
+            function checkTick(now) {
+                if (!isSpinning) return;
+                const elapsed = now - startTime;
+                if (elapsed < duration) {
+                    const currentPos = Math.abs(track.getBoundingClientRect().left - track.parentElement.getBoundingClientRect().left);
+                    const currentCardIdx = Math.floor(currentPos / CARD_WIDTH);
+                    if (currentCardIdx !== lastCardIndex) {
+                        lastCardIndex = currentCardIdx;
+                        playTickSound();
+                    }
+                    requestAnimationFrame(checkTick);
+                } else {
+                    finishSpin(winningItem);
+                }
+            }
+
+            requestAnimationFrame(checkTick);
+        }
+
+        function finishSpin(winningItem) {
+            isSpinning = false;
+            document.getElementById('btnSpin').disabled = false;
+
+            const isGold = winningItem.rarity === 'gold';
+            playWinFanfare(isGold);
+
+            // Show Victory Modal
+            document.getElementById('victoryIcon').innerText = winningItem.icon;
+            document.getElementById('victoryName').innerText = winningItem.name;
+            document.getElementById('victoryRarity').innerText = `${winningItem.rarity.toUpperCase()} TIER`;
+            document.getElementById('victoryModal').classList.add('active');
+        }
+
+        function closeVictory() {
+            document.getElementById('victoryModal').classList.remove('active');
+            buildRouletteCards();
+        }
+
+        function backToGridFromVictory() {
+            closeVictory();
+            backToGrid();
+        }
+
+        // Initialize
+        renderCaseGrid();
+
+        // Auto open if specified in URL
+        if (urlParams.get('case') && CASES[urlParams.get('case')]) {
+            selectCase(urlParams.get('case'));
+            if (urlParams.get('autospin') === '1') {
+                setTimeout(spinCase, 600);
+            }
+        }
+    </script>
+</body>
+</html>
